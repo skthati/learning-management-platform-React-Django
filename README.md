@@ -11,5 +11,9 @@ Online training and Certification Platform using Python, Django, Mysql, React.
 6) To check what apps are installed use command `pip freeze`
 7) Create Django project `django-admin startproject backend` // "backend ." will remove aditional folder.
 8) Install required packages. Create new txt file and name it requirements.txt and run `pip install -r requirements.txt`
+9) Install app core using command `python3 manage.py startapp core`.
+10) Install app userauths using command `python3 manage.py startapp userauths`
+11) Install app api using command `python3 manage.py startapp api`
+
 
 
