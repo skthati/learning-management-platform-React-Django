@@ -108,8 +108,78 @@ Online training and Certification Platform using Python, Django, Mysql, React.
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     ```
 ## Creating custom users and models.
-22) 
+22) Go to userauths folder and open file models.py to update below code
+    ```Python
+    from django.db import models
+    from django.contrib.auth.models import AbstractUser
 
+    # Create your models here.
+
+    class User(AbstractUser):
+        username = models.CharField(max_length=255, unique=True)
+        email = models.EmailField(max_length=255, unique=True)
+        full_name = models.CharField(max_length=255, blank=True, null=True)
+        otp = models.CharField(max_length=6, unique=True)
+
+        USERNAME_FIELD = 'email'
+        REQUIRED_FIELDS = ['username']
+
+        def __str__(self):
+            return self.email
+        
+        def save(self, *args, **kwargs):
+            email_username, full_name = self.email.split('@')
+            if self.full_name == "" or self.full_name == None:
+                self.full_name = email_username
+            if self.username == "" or self.username == None:
+                self.username = email_username
+            super(User, self).save(*args, **kwargs)
+
+
+    class Profile(models.Model):
+        user = models.OneToOneField(User, on_delete=models.CASCADE)
+        image = models.FileField(upload_to='profile_pics/', default = "default-profile.png", blank=True, null=True)
+        bio = models.TextField(blank=True, null=True)
+        full_name = models.CharField(max_length=255, blank=True, null=True)
+        country = models.CharField(max_length=255, blank=True, null=True)
+        created_at = models.DateTimeField(auto_now_add=True)
+        updated_at = models.DateTimeField(auto_now=True)
+
+        def __str__(self):
+            if self.full_name:
+                return str(self.full_name)
+            else:
+                return str(self.user.full_name)
+
+        def save(self, *args, **kwargs):
+            if self.profile_pic == "":
+                self.profile_pic = "profile_pics/default.png"
+            if self.full_name == "" or self.full_name == None:
+                self.full_name = self.user.username
+            super(Profile, self).save(*args, **kwargs)
+
+
+    ```
+23) In userauths folder open admin.py file to update below code
+    ```Python
+    from django.contrib import admin
+    from .models import User, Profile
+
+    # Register your models here.
+
+    class ProfileAdmin(admin.ModelAdmin):
+        list_display = ['user', 'full_name', 'country', 'created_at', 'updated_at']
+        search_fields = ['user__email', 'user__username', 'full_name', 'country']
+        list_filter = ['created_at', 'updated_at']
+
+
+    admin.site.register(User)
+    admin.site.register(Profile, ProfileAdmin)
+    ```
+24) Output so far.
+    ![admin-profile](backend/backend/static/admin-profile.gif)
+
+25) 
 
 
 
