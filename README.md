@@ -179,8 +179,48 @@ Online training and Certification Platform using Python, Django, Mysql, React.
 24) Output so far.
     ![admin-profile](backend/backend/static/admin-profile.gif)
 
-25) 
+25) Automatically create Profile when User is created.
+    To do that go to folder userauths and open file models.py to write below code.
+    ```Python
+    from django.db.models.signals import post_save
 
+    # End of models.py write below code.
+
+    def create_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)   
+
+    def save_profile(sender, instance, **kwargs):
+        instance.profile.save()
+
+    post_save.connect(create_profile, sender=User)
+    post_save.connect(save_profile, sender=User)
+    ```
+
+26) ## Testing.
+    Create a new user and confirm profile is created automatically. Also delete user and confirm profile is deleted.
+    ![create-delete-user](backend/backend/static/delete-profile.gif)
+
+27) ## Serialization
+    Create a new file under api folder and name it serializer.py and copy below code
+
+    ```Python
+    from rest_framework import serializers
+    from userauths.models import User, Profile
+
+    class UserSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = User
+            fields = '__all__'
+
+    class ProfileSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = Profile
+            fields = '__all__'
+
+    ```
+
+28) 
 
 
 
