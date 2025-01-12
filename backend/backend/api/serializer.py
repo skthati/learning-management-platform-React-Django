@@ -10,7 +10,8 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token = super(MyTokenObtainPairSerializer, cls).get_token(user)
         token['email'] = user.email
         token['username'] = user.username
-        token['full_name'] = user.profile.full_name
+        if hasattr(user, 'profile'):
+            token['full_name'] = user.profile.full_name
         return token
 
 
@@ -27,26 +28,22 @@ class RegisterSerializer(serializers.ModelSerializer):
         return attrs
     
     def create(self, validated_data):
-        user = User.objects.create_user(
-            email=validated_data['email'],
-            full_name=validated_data['full_name'],
-        )
-
         email_username, _ = validated_data['email'].split('@')
-        user.username = email_username
-        user.set_password(validated_data['password1'])
-        user.save()
-        
-        return user
+        full_name = validated_data.get('full_name', email_username)
         
 
-    def create(self, validated_data):
         user = User.objects.create_user(
             email=validated_data['email'],
-            username=validated_data['username'],
-            password=validated_data['password']
+            username = email_username,
+            full_name = full_name,
+            password = validated_data['password1']
         )
+
+
+        user.save()
+
         return user
+        
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:

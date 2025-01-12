@@ -292,7 +292,8 @@ Online training and Certification Platform using Python, Django, Mysql, React.
             token = super(MyTokenObtainPairSerializer, cls).get_token(user)
             token['email'] = user.email
             token['username'] = user.username
-            token['full_name'] = user.profile.full_name
+            if hasattr(user, 'profile'):
+                token['full_name'] = user.profile.full_name
             return token
     ```
 
@@ -347,16 +348,16 @@ Online training and Certification Platform using Python, Django, Mysql, React.
             return attrs
         
         def create(self, validated_data):
+            email_username, _ = validated_data['email'].split('@')
+            full_name = validated_data.get('full_name', email_username)
+
             user = User.objects.create_user(
                 email=validated_data['email'],
-                full_name=validated_data['full_name'],
+                username = email_username,
+                full_name = full_name,
+                password = validated_data['password1']
             )
-
-            email_username, _ = validated_data['email'].split('@')
-            user.username = email_username
-            user.set_password(validated_data['password1'])
             user.save()
-            
             return user
     ```
 
@@ -388,5 +389,184 @@ Online training and Certification Platform using Python, Django, Mysql, React.
 40) Output for Token Refresh
     ![Token Refresh ](backend/backend/static/token-refresh.png)
 
-41) 
+41) ## Password reset email verify API
+    Open models.py in backend folder and write below code
+    ```Python
 
+    refresh_token = models.CharField(max_length=1000, blank=True, null=True)
+    ```
+42) Open views.py in API folder and write below code.
+    ```Python
+    from rest_framework_simplejwt.tokens import RefreshToken
+    class PasswordResetEmailVerifyAPIView(generics.RetrieveAPIView):
+    serializer_class = api_serializer.UserSerializer
+    permission_classes = (permissions.AllowAny,)
+
+    def get_object(self):
+        email = self.kwargs.get('email')
+        user = User.objects.filter(email=email).first()
+
+        if user:
+            user.otp = generate_otp()
+            refresh = RefreshToken.for_user(user)
+            refresh_token = str(refresh.access_token)
+            user.refresh_token = refresh_token
+            uuidb64 = user.pk
+            user.save()
+
+            reset_link = f"http://l127.0.0.1:8000/reset-password/?otp={user.otp}&uuidb64={uuidb64}&refresh_token={refresh_token}"
+
+            print(reset_link)
+        
+        return user
+    ```
+43) Register url 
+    Open urls.py in api folder and write below code
+    ```Python
+    urlpatterns = [
+        path("user/verify-email/<str:email>/", api_views.PasswordResetEmailVerifyAPIView.as_view(), name="verify_email"),
+    ]
+    ```
+
+44) ## Reset Password
+    Open views.py in api folder and write below code
+    ```Python
+    from rest_framework import generics, permissions, status
+
+    class ResetPasswordAPIView(generics.CreateAPIView):
+    serializer_class = api_serializer.UserSerializer
+    permission_classes = (permissions.AllowAny,)
+
+    def create(self, request, *args, **kwargs):
+        payload = request.data
+
+        otp = payload.get('otp')
+        uuidb64 = payload.get('uuidb64')
+        password = payload.get('password')
+        refresh_token = payload.get('refresh_token')
+
+        user = User.objects.filter(pk=uuidb64, otp = otp).first()
+        if user:
+            user.set_password(password)
+            user.otp = None
+            user.refresh_token = None
+            user.save()
+            return Response({'message': 'Password Reset Success'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'message': 'Something went wrong!'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        
+    ```
+
+45) Register url 
+    Open urls.py in api folder and write below code
+    ```Python
+    urlpatterns = [
+        path("user/reset-password/", api_views.ResetPasswordAPIView.as_view(), name="reset_password"),
+    ]
+    ```
+
+46) ## Environment variables
+    Open settings.py and initialize variables.
+    ```Python
+    from environs import Env
+    env = Env()
+    BASE_DIR = Path(__file__).resolve().parent.parent
+    env.read_env(os.path.join(BASE_DIR, '..', 'venv', '.env'))
+
+    env.read_env()
+
+    ```
+47) Create a new file .env in folder venv and create your first variable.
+    ```Python
+    MAILGUN_SECREAT_KEY=yoursecreatkey
+    ```
+    In settings.py
+    ```Python
+    GMAIL_HOST="youremailaddress"
+    GMAIL_PASSWORD="youremailpassword"
+    ```
+48) ## Email System
+    Open settings.py and add below code
+    ```Python
+    # settings.py
+
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = 'smtp.gmail.com'  # For Gmail
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_USER = env("GMAIL_HOST")  # Replace with your email
+    EMAIL_HOST_PASSWORD = env("GMAIL_PASSWORD") # Replace with your app-specific password
+
+
+    ```
+49) ### Email template folders
+    create folder email inside backend/templates
+    create file password_reset.html inside folder email
+    write below code inside password_reset.html
+    ```HTML
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Password Reset</title>
+    </head>
+    <body>
+        <h1>Hello {{ username }},</h1>
+        <p>We received a request to reset your password. You can reset it by clicking the link below:</p>
+        <p><a href="{{ reset_link }}">Reset Password</a></p>
+        <p>If you didn’t request a password reset, you can ignore this email.</p>
+        <p>Thanks,<br>The Team</p>
+    </body>
+    </html>
+
+    ```
+
+50) Open views.py from api folder and write below code
+    ```Python
+    def send_simple_email(user, reset_link):
+        subject = f"Hello {user.username}! Reset your password"
+        from_email = settings.EMAIL_HOST_USER  # Must match EMAIL_HOST_USER
+        recipient_list = [user.email]
+
+        params = {
+            'user': user,
+            'reset_link': reset_link
+        }
+
+        text_body = render_to_string("email/password_reset.html", params)
+        
+        send_mail(subject, "", from_email, recipient_list, html_message=text_body)
+
+
+    ```
+51) Generate reset link and send to function send_simple_email
+    ```Python
+    class PasswordResetEmailVerifyAPIView(generics.RetrieveAPIView):
+        serializer_class = api_serializer.UserSerializer
+        permission_classes = (permissions.AllowAny,)
+
+        def get_object(self):
+            email = self.kwargs.get('email')
+            user = User.objects.filter(email=email).first()
+
+            if not user:
+                raise Response({'message': 'User with this email does not exist.'}, status=status.HTTP_404_NOT_FOUND)
+        
+            user.otp = generate_otp()
+            refresh = RefreshToken.for_user(user)
+            refresh_token = str(refresh.access_token)
+            user.refresh_token = refresh_token
+            # uuidb64 = user.pk
+            uuidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+            user.save()
+
+            reset_link = f"http://127.0.0.1:8000/reset-password/?otp={user.otp}&uuidb64={uuidb64}&refresh_token={refresh_token}"
+            send_simple_email(user, reset_link)
+            print(reset_link)
+            
+            return user
+    ```
+
+52) ### Output
+    ![password reset request](backend/backend/static/password-reset-request.png)
+    ![Email from app](backend/backend/static/email-from-app.png)
