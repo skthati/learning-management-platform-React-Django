@@ -570,3 +570,35 @@ Online training and Certification Platform using Python, Django, Mysql, React.
 52) ### Output
     ![password reset request](backend/backend/static/password-reset-request.png)
     ![Email from app](backend/backend/static/email-from-app.png)
+
+53) ## drf_yasg 
+    ```Python
+    from rest_framework import permissions
+    from drf_yasg.views import get_schema_view
+    from drf_yasg import openapi
+
+    schema_view = get_schema_view(
+        openapi.Info(
+            title="Sandeep Learning Backend API",
+            default_version='v1',
+            description="API for Sandeep Learning",
+            terms_of_service="http://wwww.sloka.co.nz",
+            contact=openapi.Contact(email="support@sloka.co.nz"),
+            license=openapi.License(name="BSD License"),
+        ),
+        public=True,
+        permission_classes=(permissions.AllowAny,),
+    )
+
+    urlpatterns = [
+        path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+        path("", schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+        path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+
+    ]
+
+    ```
+54) Register app 'drf_yasg' in settings.py
+
+55) OUTPUT Swagger
+    ![Swagger](backend/backend/static/swagger.gif)
