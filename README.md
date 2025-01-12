@@ -220,10 +220,173 @@ Online training and Certification Platform using Python, Django, Mysql, React.
 
     ```
 
-28) 
+28) Install/Register 3rd party apps in settings.py
+    Install rest_framework and corsheaders
+    ```python
+    # Application definition
+
+    INSTALLED_APPS = [
+        'rest_framework',
+        'rest_framework_simplejwt.token_blacklist',
+        'corsheaders',
+
+    ]
+
+    MIDDLEWARE = [
+        'corsheaders.middleware.CorsMiddleware',
+        'django.middleware.security.SecurityMiddleware',
+    ]
+
+    ```
+
+29) ## JWT Settings
+    Code below is static and one off code written in settings.py
+    ```Python
+        SIMPLE_JWT = {
+        'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
+        'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+        'ROTATE_REFRESH_TOKENS': True,
+        'BLACKLIST_AFTER_ROTATION': True,
+        'UPDATE_LAST_LOGIN': False,
+        'ALGORITHM': 'HS256',
+        'verifing_key': None,
+        'AUDIENCE': None,
+        'ISSUER': None,
+        'jwk_url': None,
+        'LEEWAY': 0,
+        'AUTH_HEADER_TYPES': ('Bearer',),
+        'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
+        'USER_ID_FIELD': 'id',
+        'USER_ID_CLAIM': 'user_id',
+        'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
+        'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+        'TOKEN_TYPE_CLAIM': 'token_type',
+        'TOKEN_USER_CLASS': 'rest_framework_simplejwt.models.TokenUser',
+        'JTI_CLAIM': 'jti',
+        'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
+        'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
+        'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
+    }
+    ```
+30) Cornheaders in settings.py
+    ```Python
+    CORS_ALLOW_ALL_ORIGINS = True
+
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:3000",
+        "http://localhost:8000",
+        "http://localhost:8080",
+
+    ]
+    ```
+
+31) ## Token Serialization
+    add below code to serializer.py file.
+    ```Python
+    from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 
+    class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+        @classmethod
+        def get_token(cls, user):
+            token = super(MyTokenObtainPairSerializer, cls).get_token(user)
+            token['email'] = user.email
+            token['username'] = user.username
+            token['full_name'] = user.profile.full_name
+            return token
+    ```
 
+32) Serializer class in api views
+    Open views.py in API folder and write below code
+    ```Python
+    from django.shortcuts import render
+    from api import serializer as api_serializer
+    from rest_framework_simplejwt.views import TokenObtainPairView
 
+    class MyTokenObtainPairView(TokenObtainPairView):
+        serializer_class = api_serializer.MyTokenObtainPairSerializer
+    ```
+33) Add urls in api
+    Create a new file urls.py in API folder and write below code.
+    ```Python
+    from api import views as api_views
+    from django.urls import path
 
+    urlpatterns = [
+        path("user/token/", api_views.MyTokenObtainPairView.as_view(), name="token_obtain_pair"),
+    ]
+    ```
+34) Add urls in backend folder
+    Open file urls.py in backend folder and write below code.
+    ```Python
+    from django.urls import path, include
+
+    urlpatterns = [
+        path('api/', include('api.urls')),
+    ]
+    ```
+35) Token Output
+    If we go to URL http://127.0.0.1:8000/api/user/token/ we can see the token and refresh token.
+    ![Token Output](backend/backend/static/token.png)
+
+36) Register User
+    Open serializer.py in api folder and write below code
+    ```Python
+    from django.contrib.auth.password_validation import validate_password
+
+    class RegisterSerializer(serializers.ModelSerializer):
+        password1 = serializers.CharField(write_only=True, required=True, validators=[validate_password])
+        password2 = serializers.CharField(write_only=True, required=True)
+        class Meta:
+            model = User
+            fields = ['full_name', 'email', 'password1', 'password2']
+
+        def validate(self, attrs):
+            if attrs['password1'] != attrs['password2']:
+                raise serializers.ValidationError({"password": "Password fields didn't match"})
+            return attrs
+        
+        def create(self, validated_data):
+            user = User.objects.create_user(
+                email=validated_data['email'],
+                full_name=validated_data['full_name'],
+            )
+
+            email_username, _ = validated_data['email'].split('@')
+            user.username = email_username
+            user.set_password(validated_data['password1'])
+            user.save()
+            
+            return user
+    ```
+
+37) Register User views
+    Open views.py file in api folder and write below code.
+    ```Python
+    from rest_framework import generics, permissions
+    from userauths.models import User, Profile
+
+    class RegisterView(generics.CreateAPIView):
+        queryset = User.objects.all()
+        serializer_class = api_serializer.RegisterSerializer
+        permission_classes = (permissions.AllowAny,)
+    ```
+38) Register urls 
+    Open urls.py in api folder and write below code.
+    ```Python
+    from rest_framework_simplejwt.views import TokenObtainPairView
+
+    urlpatterns = [
+        path("user/token/", api_views.MyTokenObtainPairView.as_view(), name="token_obtain_pair"),
+        path("user/register/", api_views.RegisterView.as_view(), name="register"),
+        path("user/token/refresh/", TokenObtainPairView.as_view(), name="token_refresh"),
+
+    ]
+    ```
+39) Output for API Register
+    ![Register User API](backend/backend/static/register.png)
+40) Output for Token Refresh
+    ![Token Refresh ](backend/backend/static/token-refresh.png)
+
+41) 
 
