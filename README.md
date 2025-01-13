@@ -602,3 +602,122 @@ Online training and Certification Platform using Python, Django, Mysql, React.
 
 55) OUTPUT Swagger
     ![Swagger](backend/backend/static/swagger.gif)
+
+56) # React Installation
+    Open new terminal and goto folder frontend to install React
+    ```bash
+    # Install yarn
+    npm install --global yarn
+
+    yarn create vite frontend --template react
+
+    cd frontend
+
+    yarn
+
+    yarn add axios
+
+    # To start the dev server
+    yarn dev
+    ```
+
+57) ## Install Packages
+    Open package.json inside frontend folder and update with below packages.
+    run `yarn` command once you pasted below packages.
+    You can also install packages individually by using `yarn add packagename` command in bash
+
+    ```React
+    {
+    "name": "frontend",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "lint": "eslint .",
+        "preview": "vite preview"
+    },
+    "dependencies": {
+        "@ckeditor/ckeditor5-build-classic": "^44.1.0",
+        "@ckeditor/ckeditor5-react": "^9.4.0",
+        "@paypal/react-paypal-js": "^8.7.0",
+        "axios": "^1.7.9",
+        "bootstrap": "^5.3.3",
+        "chart.js": "^4.4.7",
+        "dayjs": "^1.11.13",
+        "js-cookie": "^3.0.5",
+        "moment": "^2.30.1",
+        "react": "^19.0.0",
+        "react-bootstrap": "^2.10.7",
+        "react-chart": "^0.0.1",
+        "react-chartjs-2": "^5.3.0",
+        "react-dom": "^19.0.0",
+        "react-hook-form": "^7.54.2",
+        "react-icons": "^5.4.0",
+        "react-photo-album": "^3.0.2",
+        "react-player": "^2.16.0",
+        "react-rater": "^6.0.5",
+        "react-router-dom": "^7.1.1",
+        "sweetalert2": "^11.15.10",
+        "yet-another-react-lightbox": "^3.21.7",
+        "zustand": "^5.0.3"
+    },
+    "devDependencies": {
+        "@eslint/js": "^9.17.0",
+        "@types/react": "^19.0.6",
+        "@types/react-dom": "^19.0.3",
+        "@vitejs/plugin-react": "^4.3.4",
+        "eslint": "^9.17.0",
+        "eslint-plugin-react": "^7.37.2",
+        "eslint-plugin-react-hooks": "^5.0.0",
+        "eslint-plugin-react-refresh": "^0.4.16",
+        "globals": "^15.14.0",
+        "prettier": "^3.4.2",
+        "simple-zustand-devtools": "^1.1.0",
+        "vite": "^6.0.5"
+    }
+    }
+    
+    ```
+58) Upgrade all packages to latest using below code.
+    ```bash
+    yarn upgrade --latest
+    ```
+
+59) ## Zustand
+    Create a new folder and name it as store under frontend/src.
+    Create a new file and name it as auth.js under frontend/src/store.
+    ```React
+    import {create} from 'zustand';
+    import {mountStoreDevtool} from 'simple-zustand-devtools';
+
+    export const useAuthStore = create((set, get) => ({
+        alluserdata: null,
+        loading: false,
+
+        user: () => ({
+            user_id: get().alluserdata?.user_id || null,
+            username: get().alluserdata?.username || null,
+        }),
+
+        setUser: (user) => set({
+            alluserdata: user,
+        }),
+
+        setLoading: (loading) => set({loading}),
+
+        logout: () => set({
+            alluserdata: null,
+        }),
+
+        isLoggedIn: () => get().alluserdata !== null,
+
+    }));
+
+    if (import.meta.env.MODE === 'development') {
+        mountStoreDevtool('AuthStore', useAuthStore);
+    }
+
+
+    ```

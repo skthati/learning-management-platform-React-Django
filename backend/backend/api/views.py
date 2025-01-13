@@ -37,7 +37,7 @@ def send_simple_email(user, reset_link):
     recipient_list = [user.email]
 
     params = {
-        'user': user,
+        'user': user.username,
         'reset_link': reset_link
     }
 
@@ -71,8 +71,6 @@ class PasswordResetEmailVerifyAPIView(generics.RetrieveAPIView):
         
         return user
     
-
-
 
 class ResetPasswordAPIView(generics.CreateAPIView):
     serializer_class = api_serializer.UserSerializer
