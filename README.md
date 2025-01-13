@@ -908,37 +908,55 @@ Online training and Certification Platform using Python, Django, Mysql, React.
     import { setUser } from '../utils/auth';
 
     const MainWrapper = ({ children }) => {
-        const [loading, setLoading] = useState(true);
+        const [loading, setLoading] = useState(true); // Track loading state
+        const [error, setError] = useState(null); // Track errors
 
         useEffect(() => {
             const handler = async () => {
-            await setUser();
-            setLoading(false);
+                try {
+                    await setUser(); // Execute the user setup
+                    setLoading(false); // Mark loading as complete
+                } catch (err) {
+                    setError(err.message); // Capture any errors
+                    setLoading(false); // Ensure loading state is cleared even on error
+                }
             };
             handler();
         }, []);
 
-        return <> {loading ? null : children }</>;
-        
+        if (loading) {
+            return <div>Loading...</div>; // Placeholder during loading
+        }
+
+        if (error) {
+            return <div>Error: {error}</div>; // Display error if something goes wrong
+        }
+
+        return <>{children}</>; // Render children once ready
     };
 
     export default MainWrapper;
+
+
     ```
 
 64) Route to login page 
     Create a new file privateRoute.js in folder frontend/src/layouts/privateRoute.js
     ```React
-    import { navigate } from 'react-router-dom';
+    import { Navigate } from 'react-router-dom';
     import { useAuthStore } from '../store/auth';
 
     const PrivateRoute = ({ children }) => {
-        const isLoggedIn = useAuthStore((state) => state.isLoggedIn)();
+        const isLoggedIn = useAuthStore((state) => state.isLoggedIn());
 
-        return isLoggedIn ? <> children </> : <> <navigate to = "/login/"></navigate></>;
-    }
+        return isLoggedIn ? children : <Navigate to="/login" replace />;
+    };
 
     export default PrivateRoute;
 
     ```
 
-65) 
+65) App.jsx in src folder.
+    ```React
+    
+    ```

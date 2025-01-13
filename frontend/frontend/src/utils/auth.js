@@ -1,7 +1,7 @@
-import {useAuthStore} from '../store/auth';
-import {axios} from './axios';
-import jwtDecode from 'jwt-decode';
-import cookie from 'js-cookie';
+import { useAuthStore } from '../store/auth';
+import axios from './axios';
+import Cookies from 'js-cookie';  // Updated to use Cookies correctly
+import { jwtDecode } from 'jwt-decode';
 import Swal from 'sweetalert2';
 
 export const login = async (email, password) => {
@@ -46,11 +46,10 @@ export const register = async (full_name, email, password1, password2) => {
     }
 }
 
-
 export const logout = () => {
     Cookies.remove('access_token');
     Cookies.remove('refresh_token');
-    useAuthStore.getState().setUser(null);
+    useAuthStore.getState().setUser(null); // Ensure proper store update on logout
     alert('Logout successful');
 }
 
@@ -59,12 +58,14 @@ export const setUser = async () => {
     const refresh_token = Cookies.get('refresh_token');
 
     if (!access_token || !refresh_token) {
+        console.log('No tokens found');
         return;
     }
 
     if (isAccessTokenExpired(access_token)) {
         const {data, error} = await getRefreshAccessToken(refresh_token);
         if (error) {
+            console.log('Failed to refresh tokens');
             return;
         }
         setAuthUser(data.access, data.refresh);
@@ -108,10 +109,11 @@ export const getRefreshAccessToken = async () => {
 export const isAccessTokenExpired = (access_token) => {
     try {
         const decodedtoken = jwtDecode(access_token);
-        return decodedtoken.exp < Date.now() / 1000;
+        return decodedtoken.exp < Math.floor(Date.now() / 1000); // Corrected comparison
     } catch (error) {
         console.error('Invalid token:', error.message);
         throw new Error('Failed to decode token');
         return true;
     }
 };
+
