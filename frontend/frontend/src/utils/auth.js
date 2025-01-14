@@ -53,7 +53,7 @@ export const logout = () => {
     Cookies.remove('access_token');
     Cookies.remove('refresh_token');
     useAuthStore.getState().setUser(null); // Ensure proper store update on logout
-    alert('Logout successful');
+    // alert('Logout successful');
 }
 
 export const setUser = async () => {

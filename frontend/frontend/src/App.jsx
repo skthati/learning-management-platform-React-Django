@@ -1,20 +1,25 @@
-import { Route, Routes, BrowserRouter, useLocation } from 'react-router-dom'
-// import './App.css'
+import { Route, Routes, BrowserRouter, useLocation, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import MainWrapper from './layouts/mainWrapper'
 import PrivateRoute from './layouts/privateRoute'
 import Register from './views/auth/Register'
 import Login from './views/auth/Login'
+import Logout from './views/auth/Logout'
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { logout } from './utils/auth'
+import LoginStatus from './views/auth/LoginStatus'
 
 function App() {
   return  (
     <BrowserRouter>
       <div className="container mt-5 ">
         <MainWrapper>
+          <LoginStatus />
           <MyLandingPage />
           <Routes>
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/logout" element={<Logout />} />
             <Route path="/*" element={<PrivateRoute element={<MainWrapper />} />} />
           </Routes>
         </MainWrapper>
