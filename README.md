@@ -626,7 +626,7 @@ Online training and Certification Platform using Python, Django, Mysql, React.
     run `yarn` command once you pasted below packages.
     You can also install packages individually by using `yarn add packagename` command in bash
 
-    ```React
+    ```Jsx
     {
     "name": "frontend",
     "private": true,
@@ -688,7 +688,7 @@ Online training and Certification Platform using Python, Django, Mysql, React.
 59) ## Zustand
     Create a new folder and name it as store under frontend/src.
     Create a new file and name it as auth.js under frontend/src/store.
-    ```React
+    ```Jsx
     import {create} from 'zustand';
     import {mountStoreDevtool} from 'simple-zustand-devtools';
 
@@ -725,7 +725,7 @@ Online training and Certification Platform using Python, Django, Mysql, React.
     Create a folder utils under scr
     create 4 files auth.js, axios.js, constants.js, useAxios.js in utils folder
     write below code in axios.js
-    ```React
+    ```Jsx
     # axios.js
     import axios from 'axios';
 
@@ -741,7 +741,7 @@ Online training and Certification Platform using Python, Django, Mysql, React.
     export default apiInstance;
     ```
 61) Open auth.js file in utils folder
-    ```React
+    ```Jsx
     import {useAuthStore} from '../store/auth';
     import {axios} from './axios';
     import jwtDecode from 'jwt-decode';
@@ -863,7 +863,7 @@ Online training and Certification Platform using Python, Django, Mysql, React.
     ```
 
 62) Open useAxios.js and write below code.
-    ```React
+    ```Jsx
     import axios  from "axios";
     import { API_URL } from "./constants";
     import { getRefreshAccessToken, isAccessTokenExpired, setAuthUser } from "./auth";
@@ -903,7 +903,7 @@ Online training and Certification Platform using Python, Django, Mysql, React.
     ```
 
 63) Create mainWrapper.js file in folder frontend/layouts/mainWrapper.js
-    ```React
+    ```Jsx
     import { useState, useEffect } from 'react';
     import { setUser } from '../utils/auth';
 
@@ -942,7 +942,7 @@ Online training and Certification Platform using Python, Django, Mysql, React.
 
 64) Route to login page 
     Create a new file privateRoute.js in folder frontend/src/layouts/privateRoute.js
-    ```React
+    ```Jsx
     import { Navigate } from 'react-router-dom';
     import { useAuthStore } from '../store/auth';
 
@@ -957,6 +957,270 @@ Online training and Certification Platform using Python, Django, Mysql, React.
     ```
 
 65) App.jsx in src folder.
-    ```React
-    
+    ```Jsx
+    import { Route, Routes, BrowserRouter, useLocation } from 'react-router-dom'
+    import './App.css'
+    import MainWrapper from './layouts/mainWrapper'
+    import PrivateRoute from './layouts/privateRoute'
+    import Register from './views/auth/Register'
+    import Login from './views/auth/Login'
+
+    function App() {
+    return  (
+        <BrowserRouter>
+        <MainWrapper>
+            <MyLandingPage />
+            <Routes>
+            <Route path="/register" element={<Register />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/*" element={<PrivateRoute element={<MainWrapper />} />} />
+            </Routes>
+        </MainWrapper>
+        </BrowserRouter>
+
+    )  
+    }
+
+    const MyLandingPage = () => {
+    const location = useLocation();
+    return location.pathname === '/' ? <h1>Hello World !</h1> : null
+    }
+
+    export default App
+
     ```
+
+66) # Register.jsx
+    ```Jsx
+    import { useState, useEffect } from "react";
+    import { Link, useNavigate } from "react-router-dom";
+    import apiInstance from "../../utils/axios";
+    import { register } from "../../utils/auth";
+
+    function Register() {
+    const [fullName, setFullName] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [passwordConfirmation, setPasswordConfirmation] = useState("");
+    const [error, setError] = useState("");
+    const [success, setSuccess] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
+    console.log(fullName)
+
+    useEffect(() => {
+        // Reset error state when the component mounts
+        setError("");
+    }, []);
+
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        setLoading(true);
+        setError("");
+        setSuccess(false);
+
+        if (password !== passwordConfirmation) {
+        setError("Passwords do not match");
+        setLoading(false);
+        return;
+        }
+
+        try {
+        // const response = await apiInstance.post("/user/register/", {
+        //   full_name: fullName,
+        //   email,
+        //   password1: password,
+        //   password2: passwordConfirmation,
+        // });
+        const response = await register(fullName, email, password, passwordConfirmation);
+        setSuccess("true");
+        } catch (err) {
+        setError(err.response.data?.detail || "Something went wrong");
+        
+        } finally {
+        setLoading(false);
+        }
+    };
+
+    return (
+        <div className="container mt-5 ">
+        <h1 className="text-center mb-4">Register</h1>
+        {error && <div className="alert alert-danger">{error}</div>}
+        {success && (
+            <div className="alert alert-success">
+            Registration successful!
+            <div className="mt-3">
+                <button className="btn btn-primary me-2" onClick={() => navigate('/')}>Home</button>
+                <button className="btn btn-secondary" onClick={() => navigate('/login')}>Login</button>
+            </div>
+            </div>
+        )}
+        {!success && (
+            <form onSubmit={handleSubmit} className="mx-auto" style={{ maxWidth: '600px' }}>
+            <div className="mb-3">
+            <label htmlFor="fullName" className="form-label">Full Name:</label>
+            <input
+                type="text"
+                className="form-control"
+                id="fullName"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                required
+            />
+            </div>
+            <div className="mb-3">
+            <label htmlFor="email" className="form-label">Email:</label>
+            <input
+                type="email"
+                className="form-control"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+            />
+            </div>
+            <div className="mb-3">
+            <label htmlFor="password" className="form-label">Password:</label>
+            <input
+                type="password"
+                className="form-control"
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+            />
+            </div>
+            <div className="mb-3">
+            <label htmlFor="passwordConfirmation" className="form-label">Confirm Password:</label>
+            <input
+                type="password"
+                className="form-control"
+                id="passwordConfirmation"
+                value={passwordConfirmation}
+                onChange={(e) => setPasswordConfirmation(e.target.value)}
+                required
+            />
+            </div>
+            <button type="submit" className="btn btn-primary w-100" disabled={loading}>
+            {loading ? "Registering..." : "Register"}
+            </button>
+        </form>
+        )}
+        <div className="text-center mt-3">
+            <Link to="/login">Already have an account? Login</Link>
+        </div>
+        </div>
+    );
+    }
+
+    export default Register;
+    ```
+
+67) # Login.jsx
+    ```Jsx
+    import { useState, useEffect } from "react";
+    import { Link, useNavigate } from "react-router-dom";
+    import apiInstance from "../../utils/axios";
+    import { login } from "../../utils/auth";
+
+    function Login() {
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [success, setSuccess] = useState(false);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        // Reset error state when the component mounts
+        setError("");
+    }, []);
+
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        setLoading(true);
+        setError("");
+
+        try {
+        const response = await login(email, password);
+        console.log(response);
+        setLoading(false);
+        setSuccess(true);
+        navigate("/"); // Redirect to dashboard or any other page after successful login
+        } catch (err) {
+        setLoading(false);
+        setError(err.response.data?.detail || "Invalid email or password");
+        
+        } 
+    };
+
+    return (
+        <div className="container mt-5">
+        <h1 className="text-center mb-4">Login</h1>
+        {error && <div className="alert alert-danger">{error}</div>}
+        {success && <div className="alert alert-success">Login successful</div>}
+        <form onSubmit={handleSubmit} className="mx-auto" style={{ maxWidth: '600px' }}>
+            <div className="mb-3">
+            <label htmlFor="email" className="form-label">Email:</label>
+            <input
+                type="email"
+                className="form-control"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+            />
+            </div>
+            <div className="mb-3">
+            <label htmlFor="password" className="form-label">Password:</label>
+            <input
+                type="password"
+                className="form-control"
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+            />
+            </div>
+            <button type="submit" className="btn btn-primary w-100" disabled={loading}>
+            {loading ? <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> : "Login"}
+            </button>
+        </form>
+        <div className="text-center mt-3">
+            <Link to="/register">Don't have an account? Register</Link>
+        </div>
+        </div>
+    );
+    }
+
+    export default Login;
+    ```
+
+68) ## Error correction
+    Changed the catch block to throw an error, So that handleClick block in login.jsx will not execute further code in the try block. (error: page is navigating to home page on unsuccessful login also)
+    ```Jsx
+    export const login = async (email, password) => {
+        try {
+            const {data, status} = await axios.post('user/token/', {email, password});
+
+            if (status === 200) {
+                setAuthUser(data.access, data.refresh);
+                return {data, error: null};
+                // alert('Login successful');
+            } else {
+                throw new Error('Failed to login');
+            }
+        } catch (error) {
+            console.error(error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.response.data?.detail || "Something went wrong",
+            });
+            throw new Error(error.response?.data?.detail || "Invalid email or password");
+            // return {data: null, error: error.response.data?.detail || "Something went wrong"};
+        }
+    };
+    ```
+
+69) 

@@ -29,8 +29,9 @@ class RegisterSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
         email_username, _ = validated_data['email'].split('@')
-        full_name = validated_data.get('full_name', email_username)
         
+        full_name = validated_data.get('full_name', email_username)
+        print(full_name, email_username)
 
         user = User.objects.create_user(
             email=validated_data['email'],

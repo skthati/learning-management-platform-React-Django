@@ -10,10 +10,11 @@ export const login = async (email, password) => {
 
         if (status === 200) {
             setAuthUser(data.access, data.refresh);
-            alert('Login successful');
+            return {data, error: null};
+            // alert('Login successful');
+        } else {
+            throw new Error('Failed to login');
         }
-
-        return {data, error: null};
     } catch (error) {
         console.error(error);
         Swal.fire({
@@ -21,7 +22,8 @@ export const login = async (email, password) => {
             title: 'Error',
             text: error.response.data?.detail || "Something went wrong",
         });
-        return {data: null, error: error.response.data?.detail || "Something went wrong"};
+        throw new Error(error.response?.data?.detail || "Invalid email or password");
+        // return {data: null, error: error.response.data?.detail || "Something went wrong"};
     }
 };
 
@@ -31,12 +33,13 @@ export const register = async (full_name, email, password1, password2) => {
 
         if (status === 201) {
             await login(email, password1);
-            alert('Registration successful');
+            // alert('Registration successful');
         }
 
         return {data, error: null};
     } catch (error) {
         console.error(error);
+        
         Swal.fire({
             icon: 'error',
             title: 'Error',
