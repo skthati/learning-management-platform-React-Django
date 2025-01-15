@@ -47,7 +47,7 @@ def send_simple_email(user, reset_link):
 
 
 class PasswordResetEmailVerifyAPIView(generics.RetrieveAPIView):
-    serializer_class = api_serializer.UserSerializer
+    serializer_class = api_serializer.UserWithoutPasswordSerializer
     permission_classes = (permissions.AllowAny,)
 
     def get_object(self):
@@ -65,11 +65,23 @@ class PasswordResetEmailVerifyAPIView(generics.RetrieveAPIView):
         uuidb64 = urlsafe_base64_encode(force_bytes(user.pk))
         user.save()
 
-        reset_link = f"http://127.0.0.1:8000/reset-password/?otp={user.otp}&uuidb64={uuidb64}&refresh_token={refresh_token}"
+        reset_link = f"http://localhost:5173/reset-password/?otp={user.otp}&uuidb64={uuidb64}&refresh_token={refresh_token}"
         send_simple_email(user, reset_link)
         print(reset_link)
-        
+
         return user
+    
+    def get(self, request, *args, **kwargs):
+        user = self.get_object()
+        if isinstance(user, Response):
+            return user
+        serializer = self.get_serializer(user)
+        return Response({
+            'message': 'Email sent successfully',
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
+
+
     
 
 class ResetPasswordAPIView(generics.CreateAPIView):
@@ -83,6 +95,7 @@ class ResetPasswordAPIView(generics.CreateAPIView):
         uuidb64 = payload.get('uuidb64')
         password = payload.get('password')
         refresh_token = payload.get('refresh_token')
+        print(otp, uuidb64, password, refresh_token)
 
         try:
             user_id = int(urlsafe_base64_decode(uuidb64))
@@ -98,5 +111,3 @@ class ResetPasswordAPIView(generics.CreateAPIView):
             return Response({'message': 'Password Reset Success'}, status=status.HTTP_200_OK)
         else:
             return Response({'message': 'Something went wrong!'}, status=status.HTTP_400_BAD_REQUEST)
-            
-        

@@ -39,8 +39,6 @@ class RegisterSerializer(serializers.ModelSerializer):
             full_name = full_name,
             password = validated_data['password1']
         )
-
-
         user.save()
 
         return user
@@ -50,6 +48,11 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = '__all__'
+
+class UserWithoutPasswordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        exclude = ['password']
 
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:

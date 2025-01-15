@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import apiInstance from "../../utils/axios";
 import { login } from "../../utils/auth";
+import IsAuthenticated from "./IsAuthenticated";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -9,10 +10,12 @@ function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [authenticationStatus, setAuthenticationStatus] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     // Reset error state when the component mounts
+    setAuthenticationStatus(IsAuthenticated());
     setError("");
   }, []);
 
@@ -39,6 +42,7 @@ function Login() {
       <h1 className="text-center mb-4">Login</h1>
       {error && <div className="alert alert-danger">{error}</div>}
       {success && <div className="alert alert-success">Login successful</div>}
+      {authenticationStatus ? <div className="alert alert-info">You are already logged in</div> : <div className="alert alert-info">You are not logged in</div>} 
       <form onSubmit={handleSubmit} className="mx-auto" style={{ maxWidth: '600px' }}>
         <div className="mb-3">
           <label htmlFor="email" className="form-label">Email:</label>

@@ -8,6 +8,8 @@ import Logout from './views/auth/Logout'
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { logout } from './utils/auth'
 import LoginStatus from './views/auth/LoginStatus'
+import PasswordResetEmail from './views/auth/PasswordResetVerifyEmail'
+import ResetPassword from './views/auth/ResetPassword'
 
 function App() {
   return  (
@@ -20,6 +22,8 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
             <Route path="/logout" element={<Logout />} />
+            <Route path="/verify-email" element={<PasswordResetEmail />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/*" element={<PrivateRoute element={<MainWrapper />} />} />
           </Routes>
         </MainWrapper>
