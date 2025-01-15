@@ -83,8 +83,10 @@ function ResetPassword() {
               required
             />
           </div>
-          <button type="submit" className="btn btn-primary w-100" disabled={loading}>
-            {loading ? "Resetting..." : "Reset Password"}
+          <button type="submit" 
+          className={`btn w-100 ${loading ? "btn-danger" : "btn-primary"}` }
+          disabled={loading}>
+            {loading ? ( <> Resetting... <i className="fas fa-spinner fa-spin"></i> </> ) : "Reset Password"}
           </button>
         </form>
       )}
