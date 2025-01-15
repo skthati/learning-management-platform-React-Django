@@ -69,16 +69,18 @@ class PasswordResetEmailVerifyAPIView(generics.RetrieveAPIView):
         send_simple_email(user, reset_link)
         print(reset_link)
 
-        return user
+        return user, reset_link
     
     def get(self, request, *args, **kwargs):
         user = self.get_object()
         if isinstance(user, Response):
             return user
+        user, reset_link = user
         serializer = self.get_serializer(user)
         return Response({
             'message': 'Email sent successfully',
-            'data': serializer.data
+            'data': serializer.data,
+            'reset_link': reset_link,
         }, status=status.HTTP_200_OK)
 
 
