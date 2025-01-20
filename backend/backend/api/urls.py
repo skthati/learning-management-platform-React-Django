@@ -9,5 +9,9 @@ urlpatterns = [
     path("user/verify-email/<str:email>/", api_views.PasswordResetEmailVerifyAPIView.as_view(), name="verify_email"),
     path("user/reset-password/", api_views.ResetPasswordAPIView.as_view(), name="reset_password"),
 
+    # Core Routes
+    path("instructor/", api_views.InstructorView.as_view(), name="instructor_view"),
+    path("category/", api_views.CategoryView.as_view(), name="category")
+
 ]
 

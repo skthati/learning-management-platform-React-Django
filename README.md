@@ -1457,3 +1457,6 @@ Online training and Certification Platform using Python, Django, Mysql, React.
 
 73) # Output
     ![password-reset](frontend/frontend/public/MyImages/password-reset.gif)
+
+
+

@@ -10,6 +10,7 @@ from django.conf import settings
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.template.loader import render_to_string
+from api import models as api_models
 
 
 # Create your views here.
@@ -84,8 +85,6 @@ class PasswordResetEmailVerifyAPIView(generics.RetrieveAPIView):
         }, status=status.HTTP_200_OK)
 
 
-    
-
 class ResetPasswordAPIView(generics.CreateAPIView):
     serializer_class = api_serializer.UserSerializer
     permission_classes = (permissions.AllowAny,)
@@ -113,3 +112,19 @@ class ResetPasswordAPIView(generics.CreateAPIView):
             return Response({'message': 'Password Reset Success'}, status=status.HTTP_200_OK)
         else:
             return Response({'message': 'Something went wrong!'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class InstructorView(generics.ListCreateAPIView):
+    queryset = api_models.Instructor.objects.all()
+    serializer_class = api_serializer.InstructorSerializer
+    permission_classes = (permissions.AllowAny,)
+
+    def get_queryset(self):
+        return self.queryset.all()
+
+
+class CategoryView(generics.ListAPIView):
+    queryset = api_models.Category.objects.filter(active = True)
+    serializer_class = api_serializer.CategorySerializer
+    permission_classes = (permissions.AllowAny,)
+
