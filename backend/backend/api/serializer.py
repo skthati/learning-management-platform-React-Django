@@ -70,5 +70,8 @@ class CategorySerializer(serializers.ModelSerializer):
         model = api_models.Category
         fields = '__all__'
 
-
+class CourseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = api_models.Course
+        fields = '__all__'
 

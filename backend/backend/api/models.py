@@ -86,6 +86,7 @@ class Course(models.Model):
     course_id = models.CharField(unique=True, max_length=9, editable=False)
     file = models.FileField(upload_to="course_files/", null=True, blank=True)
     image = models.FileField(upload_to="course_files/", null=True, blank=True)
+    active = models.BooleanField(default=True)
     title = models.CharField(max_length=255)
     slug = models.SlugField(max_length=255, unique=True, null=True, blank=True)
     description = models.TextField(null=True, blank=True)

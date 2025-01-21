@@ -1459,4 +1459,267 @@ Online training and Certification Platform using Python, Django, Mysql, React.
     ![password-reset](frontend/frontend/public/MyImages/password-reset.gif)
 
 
+74) # api/models.py
+    ```Python
+    from django.db import models
+    from userauths.models import User, Profile
+    from django.utils.text import slugify
+    import random
+    from shortuuid.django_fields import ShortUUIDField
 
+
+
+    LANGUAGE = (
+        ("English", "English"),
+        ("Hindi", "Hindi"),
+        ("Telugu", "Telugu"),
+    )
+
+    LEVEL = (
+        ("Beginner", "Beginner"),
+        ("Intermediate", "Intermediate"),
+        ("Advanced", "Advanced"),
+    )
+
+    INSTRUCTOR_STATUS = (
+        ("Draft", "Draft"),
+        ("Published", "Published"),
+        ("Disabled", "Disabled"),
+    )
+
+    PLATFORM_STATUS = (
+        ("Review", "Review"),
+        ("Rejected", "Rejected"),
+        ("Approved", "Approved"),
+    )
+
+
+    # Create your models here.
+    class Instructor(models.Model):
+        user = models.OneToOneField(User,  on_delete=models.CASCADE)
+        image = models.FileField(upload_to='instructor_pics/', default = "default-profile.png", blank=True, null=True)
+        full_name = models.CharField(max_length=255, blank=True, null=True)
+        bio = models.TextField(blank=True, null=True)
+        country = models.CharField(max_length=255, blank=True, null=True)
+        facebook = models.URLField(blank=True, null=True)
+        twitter = models.URLField(blank=True, null=True)
+        linkedin = models.URLField(blank=True, null=True)
+        created_at = models.DateTimeField(auto_now_add=True)
+        updated_at = models.DateTimeField(auto_now=True)
+
+        def __str__(self):
+            return self.full_name
+
+        # def Students(self):
+        #     return CartOrderItem.objects.filter(course__instructor=self)
+        
+        def Courses(self):
+            return Course.objects.filter(instructor=self)
+        
+        def ReviewsCount(self):
+            return Course.objects.filter(course__instructor=self).count()
+
+    class Category(models.Model):
+        title = models.CharField(max_length=255)
+        image = models.FileField(upload_to='category_pics/', default = "default-category.png", blank=True, null=True)
+        active = models.BooleanField(default=True)
+        slug = models.SlugField(max_length=255, unique=True, blank=True, null=True)
+        created_at = models.DateTimeField(auto_now_add=True)
+        updated_at = models.DateTimeField(auto_now=True)
+
+        class Meta:
+            verbose_name_plural = "Category"
+            ordering = ['title']
+
+        def __str__(self):
+            return self.title
+        
+        def CourseCount(self):
+            return Course.objects.filter(category = self).count()
+        
+        def save(self, *args, **kwargs ):
+            if (self.slug == "" or self.slug == None):
+                self.slug = slugify(self.title)
+            return super(Category, self).save(*args, **kwargs)
+        
+
+    class Course(models.Model):
+        category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
+        instructor = models.ForeignKey(Instructor, on_delete=models.SET_NULL, null=True, blank=True)
+        course_id = models.CharField(unique=True, max_length=9, editable=False)
+        file = models.FileField(upload_to="course_files/", null=True, blank=True)
+        image = models.FileField(upload_to="course_files/", null=True, blank=True)
+        active = models.BooleanField(default=True)
+        title = models.CharField(max_length=255)
+        slug = models.SlugField(max_length=255, unique=True, null=True, blank=True)
+        description = models.TextField(null=True, blank=True)
+        price = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+        language = models.CharField(LANGUAGE, max_length=20, default="English")
+        level = models.CharField(LEVEL, default="Beginner", max_length=20,)
+        instructor_status = models.CharField(INSTRUCTOR_STATUS, default="Draft", max_length=20,)
+        platform_status = models.CharField(PLATFORM_STATUS, default="Review", max_length=20,)
+        featured = models.BooleanField(default=False)
+        created_at = models.DateTimeField(auto_now_add=True)
+        updated_at = models.DateTimeField(auto_now=True)
+
+        def __str__(self):
+            return self.title
+        
+        def save(self, *args, **kwargs):
+            if not self.course_id:
+                while True:
+                    # Generate a random 6-digit number
+                    numeric_part = f"{random.randint(100000, 999999)}"
+                    course_id = f"CO-{numeric_part}"
+                    # Check if the generated course_id is unique
+                    if not Course.objects.filter(course_id=course_id).exists():
+                        self.course_id = course_id
+                        break
+
+            if not self.slug:
+                self.slug = slugify(self.title)
+
+            super(Course, self).save(*args, **kwargs)
+
+
+    ```
+
+75) # api/serializer.py
+    ```python
+    from rest_framework import serializers
+    from userauths.models import User, Profile
+    from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+    from django.contrib.auth.password_validation import validate_password
+    from api import models as api_models
+
+
+    class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+        @classmethod
+        def get_token(cls, user):
+            token = super(MyTokenObtainPairSerializer, cls).get_token(user)
+            token['email'] = user.email
+            token['username'] = user.username
+            if hasattr(user, 'profile'):
+                token['full_name'] = user.profile.full_name
+            return token
+
+
+    class RegisterSerializer(serializers.ModelSerializer):
+        password1 = serializers.CharField(write_only=True, required=True, validators=[validate_password])
+        password2 = serializers.CharField(write_only=True, required=True)
+        class Meta:
+            model = User
+            fields = ['full_name', 'email', 'password1', 'password2']
+
+        def validate(self, attrs):
+            if attrs['password1'] != attrs['password2']:
+                raise serializers.ValidationError({"password": "Password fields didn't match"})
+            return attrs
+        
+        def create(self, validated_data):
+            email_username, _ = validated_data['email'].split('@')
+            
+            full_name = validated_data.get('full_name', email_username)
+            print(full_name, email_username)
+
+            user = User.objects.create_user(
+                email=validated_data['email'],
+                username = email_username,
+                full_name = full_name,
+                password = validated_data['password1']
+            )
+            user.save()
+
+            return user
+            
+
+    class UserSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = User
+            fields = '__all__'
+
+    class UserWithoutPasswordSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = User
+            exclude = ['password']
+
+    class ProfileSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = Profile
+            fields = '__all__'
+
+    class InstructorSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = api_models.Instructor
+            fields = '__all__'
+
+    class CategorySerializer(serializers.ModelSerializer):
+        class Meta:
+            model = api_models.Category
+            fields = '__all__'
+
+    class CourseSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = api_models.Course
+            fields = '__all__'
+
+
+    ```
+
+76) # api/urls.py
+    ```python
+    from api import views as api_views
+    from django.urls import path
+    from rest_framework_simplejwt.views import TokenObtainPairView
+
+    urlpatterns = [
+        path("user/token/", api_views.MyTokenObtainPairView.as_view(), name="token_obtain_pair"),
+        path("user/register/", api_views.RegisterView.as_view(), name="register"),
+        path("user/token/refresh/", TokenObtainPairView.as_view(), name="token_refresh"),
+        path("user/verify-email/<str:email>/", api_views.PasswordResetEmailVerifyAPIView.as_view(), name="verify_email"),
+        path("user/reset-password/", api_views.ResetPasswordAPIView.as_view(), name="reset_password"),
+
+        # Core Routes
+        path("instructor/", api_views.InstructorView.as_view(), name="instructor_view"),
+        path("category/", api_views.CategoryView.as_view(), name="category"),
+        path("course/", api_views.CourseView.as_view(), name="course")
+    ]
+
+
+    ```
+
+77) # api/admin.py
+    ```python
+    from django.contrib import admin
+    from .models import Instructor, Category, Course
+
+
+    class InstructorAdmin(admin.ModelAdmin):
+        list_display = ['user', 'full_name', 'country', 'created_at', 'updated_at']
+        search_fields = ['user__username', 'full_name', 'country']
+        list_filter = ['country', 'created_at', 'updated_at']
+        ordering = ['-created_at']  # Show the newest instructors first
+
+
+    class CategoryAdmin(admin.ModelAdmin):
+        list_display = ['title', 'created_at', 'updated_at']
+        search_fields = ['title']
+        list_filter = ['created_at', 'updated_at']
+        ordering = ['title']  # Sort categories alphabetically
+
+
+    class CourseAdmin(admin.ModelAdmin):
+        list_display = ['title', 'category', 'instructor', 'price', 'created_at', 'updated_at']
+        search_fields = ['title', 'category__title', 'instructor__full_name']
+        list_filter = ['category', 'price', 'created_at', 'updated_at']
+        ordering = ['-created_at']  # Show the newest courses first
+        list_editable = ['price']  # Allow quick editing of the price from the admin list view
+
+
+    # Register your models with the admin
+    admin.site.register(Instructor, InstructorAdmin)
+    admin.site.register(Category, CategoryAdmin)
+    admin.site.register(Course, CourseAdmin)
+
+
+    ```

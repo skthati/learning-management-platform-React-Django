@@ -3,6 +3,7 @@ from api import serializer as api_serializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework import generics, permissions, status
 from userauths.models import ( User, Profile )
+from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.response import Response
 from django.core.mail import send_mail
@@ -114,7 +115,7 @@ class ResetPasswordAPIView(generics.CreateAPIView):
             return Response({'message': 'Something went wrong!'}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class InstructorView(generics.ListCreateAPIView):
+class InstructorView(ModelViewSet):
     queryset = api_models.Instructor.objects.all()
     serializer_class = api_serializer.InstructorSerializer
     permission_classes = (permissions.AllowAny,)
@@ -123,8 +124,13 @@ class InstructorView(generics.ListCreateAPIView):
         return self.queryset.all()
 
 
-class CategoryView(generics.ListAPIView):
+class CategoryView(ModelViewSet):
     queryset = api_models.Category.objects.filter(active = True)
     serializer_class = api_serializer.CategorySerializer
+    permission_classes = (permissions.AllowAny,)
+
+class CourseView(ModelViewSet):
+    queryset = api_models.Course.objects.filter(active = True)
+    serializer_class = api_serializer.CourseSerializer
     permission_classes = (permissions.AllowAny,)
 
