@@ -64,17 +64,20 @@ class Instructor(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def __str__(self):
-        return self.full_name
+    class Meta:
+        verbose_name_plural = "Instructor"
 
-    def Students(self):
-        return CartOrder.objects.filter(course__instructor=self)
+    def __str__(self):
+        return f"{self.full_name}"
+
+    def students(self):
+        return CartOrderList.objects.filter(instructor=self)
     
     def courses(self):
         return Course.objects.filter(instructor=self)
     
     def reviews_count(self):
-        return Course.objects.filter(course__instructor=self).count()
+        return Course.objects.filter(instructor=self).count()
 
 class Category(models.Model):
     title = models.CharField(max_length=255)
@@ -89,7 +92,7 @@ class Category(models.Model):
         ordering = ['title']
 
     def __str__(self):
-        return self.title
+        return f"{self.slug}"
     
     def course_count(self):
         return Course.objects.filter(category = self).count()
@@ -99,7 +102,6 @@ class Category(models.Model):
             self.slug = slugify(self.title)
         return super(Category, self).save(*args, **kwargs)
     
-
 class Course(models.Model):
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     instructor = models.ForeignKey(Instructor, on_delete=models.SET_NULL, null=True, blank=True)
@@ -119,8 +121,11 @@ class Course(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        verbose_name_plural = "Course"
+
     def __str__(self):
-        return self.title
+        return f"{self.course_id} - {self.title}"
     
     def save(self, *args, **kwargs):
         if not self.course_id:
@@ -142,7 +147,7 @@ class Course(models.Model):
         return EnrolledCourse.objects.filter(course=self)
     
     def curriculum(self):
-        return ChapterList.objects.filter(chapter__course=self)
+        return Chapter.objects.filter(course=self)
     
     def lectures(self):
         return ChapterList.objects.filter(chapter__course=self)
@@ -157,7 +162,6 @@ class Course(models.Model):
     def reviews(self):
         return Reviews.objects.filter(course=self, active=True)
     
-
 class Chapter(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
@@ -165,6 +169,9 @@ class Chapter(models.Model):
     chapter_id = models.CharField(unique=True, max_length=9, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = "Chapter"
 
     def __str__(self):
         return self.title
@@ -197,6 +204,9 @@ class ChapterList(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        verbose_name_plural = "Chapter List"
+
     def __str__(self):
         return f"{self.title} - {self.chapter.title}"
     
@@ -221,7 +231,6 @@ class ChapterList(models.Model):
             
         super(ChapterList, self).save(*args, **kwargs)
 
-
 class Question_Answer(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
@@ -232,10 +241,11 @@ class Question_Answer(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.course.title} - {self.user.username}"
+        return f"{self.title} - {self.user.username}"
     
     class Meta:
         ordering = ['-created_at']
+        verbose_name_plural = "Question and Answer"
     
     def messages(self):
         return Question_Answer_Message.objects.filter(question=self)
@@ -267,10 +277,11 @@ class Question_Answer_Message(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.course.title} - {self.user.username}"
+        return f"{self.title} - {self.user.username}"
     
     class Meta:
         ordering = ['created_at']
+        verbose_name_plural = "Question Answer Message"
     
     def profile(self):
         return Profile.objects.get(user=self.user)
@@ -288,7 +299,6 @@ class Question_Answer_Message(models.Model):
 
         super(Question_Answer_Message, self).save(*args, **kwargs)
 
-
 class Cart(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
@@ -299,6 +309,9 @@ class Cart(models.Model):
     country = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = "Cart"
 
     def __str__(self):
         return f"{self.course.title} - {self.cart_id}"
@@ -339,6 +352,7 @@ class CartOrder(models.Model):
     
     class Meta:
         ordering = ['created_at']
+        verbose_name_plural = "Cart Order"
     
     def order_list(self):
         return CartOrderList.objects.filter(order=self)
@@ -375,6 +389,7 @@ class CartOrderList(models.Model):
     
     class Meta:
         ordering = ['created_at']
+        verbose_name_plural = "Cart Order List"
     
     def order_id(self):
         return f"Order ID: {self.order.order_id}"
@@ -402,6 +417,9 @@ class Certificate(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        verbose_name_plural = "Certificates"
+
     def __str__(self):
         return f"{self.course.title}"
 
@@ -424,7 +442,10 @@ class CompletedLesson(models.Model):
     chapter_list = models.ForeignKey(ChapterList, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
+    class Meta:
+        verbose_name_plural = "Completed Lessons"    
+
     def __str__(self):
         return f"{self.course.title}"
 
@@ -436,9 +457,12 @@ class EnrolledCourse(models.Model):
     order_list = models.ForeignKey(CartOrderList, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
+    class Meta:
+        verbose_name_plural = "Enrolled Course"    
+
     def __str__(self):
-        return f"{self.course.title}"
+        return f"{self.enrollment_id}"
     
     def lectures(self):
         return ChapterList.objects.filter(chapter__course=self.course)
@@ -459,14 +483,14 @@ class EnrolledCourse(models.Model):
         return Reviews.objects.filter(course=self.course, user=self.user).first()
 
     def save(self, *args, **kwargs):
-        if not self.enrollment_id_id:
+        if not self.enrollment_id:
             while True:
                 # Generate a random 7-digit number
                 numeric_part = f"{random.randint(100000, 9999999)}"
-                enrollment_id_id = f"ORD-{numeric_part}"
-                # Check if the generated enrollment_id_id is unique
-                if not EnrolledCourse.objects.filter(enrollment_id_id=enrollment_id_id).exists():
-                    self.enrollment_id_id = enrollment_id_id
+                enrollment_id = f"ORD-{numeric_part}"
+                # Check if the generated enrollment_id is unique
+                if not EnrolledCourse.objects.filter(enrollment_id=enrollment_id).exists():
+                    self.enrollment_id = enrollment_id
                     break
 
         super(EnrolledCourse, self).save(*args, **kwargs)
@@ -479,6 +503,9 @@ class Notes(models.Model):
     notes = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = "Notes"
 
     def __str__(self):
         return self.title
@@ -495,8 +522,7 @@ class Notes(models.Model):
                     break
 
         super(Notes, self).save(*args, **kwargs)
-
-    
+   
 class Reviews(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
@@ -507,12 +533,14 @@ class Reviews(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        verbose_name_plural = "Reviews"
+
     def __str__(self):
         return self.course.title
     
     def profile(self):
         return Profile.objects.get(user=self.user)
-
 
 class Notifications(models.Model):
     course = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True, blank=True)
@@ -525,6 +553,9 @@ class Notifications(models.Model):
     viewed = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = "Notifications"
 
     def __str__(self):
         return self.notification_type
@@ -554,6 +585,9 @@ class Country(models.Model):
     country_name = models.CharField(max_length=100, )
     tax = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     active = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name_plural = "Countries"
 
     def __str__(self):
         return self.country_name

@@ -20,18 +20,14 @@ from api import models as api_models
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = api_serializer.MyTokenObtainPairSerializer
 
-
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = api_serializer.RegisterSerializer
     permission_classes = (permissions.AllowAny,)
 
-
 def generate_otp(Len = 6):
     import random
     return "".join([str(random.randint(0, 9)) for _ in range(Len)])
-
-
 
 def send_simple_email(user, reset_link):
     subject = f"Hello {user.username}! Reset your password"
@@ -46,7 +42,6 @@ def send_simple_email(user, reset_link):
     text_body = render_to_string("email/password_reset.html", params)
     
     send_mail(subject, "", from_email, recipient_list, html_message=text_body)
-
 
 class PasswordResetEmailVerifyAPIView(generics.RetrieveAPIView):
     serializer_class = api_serializer.UserWithoutPasswordSerializer
@@ -85,7 +80,6 @@ class PasswordResetEmailVerifyAPIView(generics.RetrieveAPIView):
             'reset_link': reset_link,
         }, status=status.HTTP_200_OK)
 
-
 class ResetPasswordAPIView(generics.CreateAPIView):
     serializer_class = api_serializer.UserSerializer
     permission_classes = (permissions.AllowAny,)
@@ -114,23 +108,126 @@ class ResetPasswordAPIView(generics.CreateAPIView):
         else:
             return Response({'message': 'Something went wrong!'}, status=status.HTTP_400_BAD_REQUEST)
 
-
 class InstructorView(ModelViewSet):
     queryset = api_models.Instructor.objects.all()
     serializer_class = api_serializer.InstructorSerializer
     permission_classes = (permissions.AllowAny,)
 
-    def get_queryset(self):
-        return self.queryset.all()
-
+    # def get_queryset(self):
+    #     return self.queryset.all()
 
 class CategoryView(ModelViewSet):
     queryset = api_models.Category.objects.filter(active = True)
     serializer_class = api_serializer.CategorySerializer
     permission_classes = (permissions.AllowAny,)
+    lookup_field = 'slug'  # Use 'slug' instead of the default 'pk'
+
+    def get_queryset(self):
+        # Get the slug from url params
+        slug = self.kwargs.get('slug', None)
+        if slug:
+            queryset = api_models.Category.objects.filter(slug=slug, active=True)
+        else:
+            queryset = api_models.Category.objects.filter(active=True)
+        return queryset
 
 class CourseView(ModelViewSet):
-    queryset = api_models.Course.objects.filter(active = True)
+    queryset = api_models.Course.objects.filter(active = True) # platform_status = "Published", 
     serializer_class = api_serializer.CourseSerializer
     permission_classes = (permissions.AllowAny,)
+    lookup_field = 'slug'  # Use 'slug' instead of the default 'pk'
+    
 
+    def get_queryset(self):
+        # Get the slug from url params
+        print(self.kwargs)
+        slug = self.kwargs.get('slug', None)
+        id = self.kwargs.get('id', None)
+        if slug:
+            queryset = api_models.Course.objects.filter(slug=slug, active=True)
+        else:
+            queryset = api_models.Course.objects.filter(active=True)
+        return queryset
+
+            
+    
+
+class ChapterView(ModelViewSet):
+    queryset = api_models.Chapter.objects.all()
+    serializer_class = api_serializer.ChapterSerializer
+    permission_classes = (permissions.AllowAny,)
+
+class ChapterListView(ModelViewSet):
+    queryset = api_models.ChapterList.objects.all()
+    serializer_class = api_serializer.ChapterListSerializer
+    permission_classes = (permissions.AllowAny,)
+
+class Question_AnswerView(ModelViewSet):
+    queryset = api_models.Question_Answer.objects.all()
+    serializer_class = api_serializer.Question_AnswerSerializer
+    permission_classes = (permissions.AllowAny,)
+
+class Question_Answer_MessageView(ModelViewSet):
+    queryset = api_models.Question_Answer_Message.objects.all()
+    serializer_class = api_serializer.Question_Answer_MessageSerializer
+    permission_classes = (permissions.AllowAny,)
+
+class CartView(ModelViewSet):
+    queryset = api_models.Cart.objects.all()
+    serializer_class = api_serializer.CartSerializer
+    permission_classes = (permissions.AllowAny,)
+
+class CartOrderView(ModelViewSet):
+    queryset = api_models.CartOrder.objects.all()
+    serializer_class = api_serializer.CartOrderSerializer
+    permission_classes = (permissions.AllowAny,)
+
+class CartOrderListView(ModelViewSet):
+    queryset = api_models.CartOrderList.objects.all()
+    serializer_class = api_serializer.CartOrderListSerializer
+    permission_classes = (permissions.AllowAny,)
+
+class CertificateView(ModelViewSet):
+    queryset = api_models.Certificate.objects.all()
+    serializer_class = api_serializer.CertificateSerializer
+    permission_classes = (permissions.AllowAny,)
+
+class CompletedLessonView(ModelViewSet):
+    queryset = api_models.CompletedLesson.objects.all()
+    serializer_class = api_serializer.CompletedLessonSerializer
+    permission_classes = (permissions.AllowAny,)
+
+class EnrolledCourseView(ModelViewSet):
+    queryset = api_models.EnrolledCourse.objects.all()
+    serializer_class = api_serializer.EnrolledCourseSerializer
+    permission_classes = (permissions.AllowAny,)
+
+class NotesView(ModelViewSet):
+    queryset = api_models.Notes.objects.all()
+    serializer_class = api_serializer.NotesSerializer
+    permission_classes = (permissions.AllowAny,)
+
+class ReviewsView(ModelViewSet):
+    queryset = api_models.Reviews.objects.all()
+    serializer_class = api_serializer.ReviewsSerializer
+    permission_classes = (permissions.AllowAny,)
+
+class NotificationsView(ModelViewSet):
+    queryset = api_models.Notifications.objects.all()
+    serializer_class = api_serializer.NotificationsSerializer
+    permission_classes = (permissions.AllowAny,)
+
+class CouponView(ModelViewSet):
+    queryset = api_models.Coupon.objects.all()
+    serializer_class = api_serializer.CouponSerializer
+    permission_classes = (permissions.AllowAny,)
+
+class WishlistView(ModelViewSet):
+    queryset = api_models.Wishlist.objects.all()
+    serializer_class = api_serializer.WishlistSerializer
+    permission_classes = (permissions.AllowAny,)
+
+class CountryView(ModelViewSet):
+    queryset = api_models.Country.objects.all()
+    serializer_class = api_serializer.CountrySerializer
+    permission_classes = (permissions.AllowAny,)
