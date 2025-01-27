@@ -111,9 +111,24 @@ class Question_AnswerSerializer(serializers.ModelSerializer):
         ]
 
 class CartSerializer(serializers.ModelSerializer):
+    course_name = serializers.SerializerMethodField()
     class Meta:
         model = api_models.Cart
-        fields = '__all__'
+        fields = [
+            "course",
+            "user",
+            "cart_id",
+            "price",
+            "tax",
+            "total",
+            "country",
+            "created_at",
+            "updated_at",
+            "course_name",
+        ]
+    
+    def get_course_name(self, obj):
+        return obj.course.title if obj.course else None
 
 class CartOrderListSerializer(serializers.ModelSerializer):
     class Meta:

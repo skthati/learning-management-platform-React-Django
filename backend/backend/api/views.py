@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from django.core.mail import send_mail
 from django.conf import settings
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+import decimal
 from django.utils.encoding import force_bytes
 from django.template.loader import render_to_string
 from api import models as api_models
@@ -177,15 +178,107 @@ class CartView(ModelViewSet):
     serializer_class = api_serializer.CartSerializer
     permission_classes = (permissions.AllowAny,)
 
+    def create(self, request, *args, **kwargs):
+        payload = request.data
+        user = request.user
+        user_id = payload.get('user_id')
+        course_id = payload.get('course')
+        cart_id = payload.get('cart_id')
+        price = payload.get('price')
+        country = payload.get('country')
+        
+        course = api_models.Course.objects.filter(id=course_id).first()
+        print(f"{course} + {course_id}")
+
+        if user:
+            user = User.objects.filter(id=user_id).first()
+        else:
+            return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            country_object = api_models.Country.objects.filter(country_name=country).first()
+            if country_object:
+                country = country_object.country_name
+        except:
+            country = "New Zealand"
+        
+        if country_object:
+            tax = country_object.tax/100
+        else:
+            tax = 0
+        
+        if not course:
+            return Response({'message': 'Course not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        cart = api_models.Cart.objects.filter(cart_id = cart_id, course=course).first()
+        
+        if cart:
+            cart.cart_id = cart_id
+            cart.course = course
+            cart.user = user
+            cart.price = price
+            cart.country = country
+            cart.tax = decimal.Decimal(price) * decimal.Decimal(tax)
+            cart.total = decimal.Decimal(price) + decimal.Decimal(cart.tax) 
+            cart.save()
+            return Response({'message': 'Course added to cart'}, status=status.HTTP_200_OK)
+        else:
+            # Create a new cart
+            cart = api_models.Cart()
+
+            cart.cart_id = cart_id
+            cart.course = course
+            cart.user = user
+            cart.price = price
+            cart.country = country
+            cart.tax = decimal.Decimal(price) * decimal.Decimal(tax)
+            cart.total = decimal.Decimal(price) + decimal.Decimal(cart.tax)
+            cart.save()
+            return Response({'message': 'Cart created successfully'}, status=status.HTTP_201_CREATED)
+    
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+    
 class CartOrderView(ModelViewSet):
     queryset = api_models.CartOrder.objects.all()
     serializer_class = api_serializer.CartOrderSerializer
     permission_classes = (permissions.AllowAny,)
+    # lookup_field = 'cart_id'  # Use 'cart_id' instead of the default 'pk'
+
+    # def get_queryset(self):
+    #     cart_id = self.kwargs.get('cart_id', None)
+    #     print(cart_id)
+    #     if cart_id:
+    #         queryset = api_models.CartOrder.objects.filter(cart_id=cart_id)
+    #     else:
+    #         queryset = api_models.CartOrder.objects.all()
+    #     return queryset
 
 class CartOrderListView(ModelViewSet):
     queryset = api_models.CartOrderList.objects.all()
     serializer_class = api_serializer.CartOrderListSerializer
     permission_classes = (permissions.AllowAny,)
+
+class MyCartOrderListView(ModelViewSet):
+    serializer_class = api_serializer.CartSerializer
+    permission_classes = (permissions.AllowAny,)
+
+    def get_queryset(self):
+        cart_id = self.kwargs.get('cart_id', None)
+        print(cart_id)
+        if cart_id:
+            queryset = api_models.Cart.objects.filter(cart_id=cart_id)
+        else:
+            queryset = api_models.Cart.objects.all()
+        return queryset
+    
+    # def retrieve(self, request, *args, **kwargs):
+    #     instance = self.get_object()
+    #     serializer = self.get_serializer(instance)
+    #     return Response(serializer.data)
+        # return super().retrieve(request, *args, **kwargs)
 
 class CertificateView(ModelViewSet):
     queryset = api_models.Certificate.objects.all()

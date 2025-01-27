@@ -39,6 +39,6 @@ urlpatterns = [
     # path("course/", api_views.CourseView.as_view(), name="course")
     path('categories/<slug:slug>/', api_views.CategoryView.as_view({'get':'list'}), name='category-by-slug'),
     path('courses/<slug:slug>/', api_views.CourseView.as_view({'get':'list'}), name='course-by-slug'),
-
+    path('cart-orders-lists/<cart_id>/', api_views.MyCartOrderListView.as_view({'get':'list'}), name='cart-order-by-cart-id'),
 ]
 
