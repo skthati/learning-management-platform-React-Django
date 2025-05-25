@@ -42,37 +42,51 @@ function Login() {
       <h1 className="text-center mb-4">Login</h1>
       {error && <div className="alert alert-danger">{error}</div>}
       {success && <div className="alert alert-success">Login successful</div>}
-      {authenticationStatus ? <div className="alert alert-info">You are already logged in</div> : <div className="alert alert-info">You are not logged in</div>} 
-      <form onSubmit={handleSubmit} className="mx-auto" style={{ maxWidth: '600px' }}>
-        <div className="mb-3">
-          <label htmlFor="email" className="form-label">Email:</label>
-          <input
-            type="email"
-            className="form-control"
-            id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="password" className="form-label">Password:</label>
-          <input
-            type="password"
-            className="form-control"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit" className="btn btn-primary w-100" disabled={loading}>
-          {loading ? <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> : "Login"}
-        </button>
-      </form>
-      <div className="text-center mt-3">
-        <Link to="/register">Don't have an account? Register</Link>
-      </div>
+      {authenticationStatus ? (
+        <>
+          <div className="alert alert-info">You are already logged in</div>
+          <div className="mt-3 ">
+            <button className="btn btn-primary me-2" onClick={() => navigate('/')}>Home</button>
+            <button className="btn btn-secondary" onClick={() => navigate('/logout')}>Logout</button>
+          </div>
+        </> ) : (
+        <>
+          {/* <div className="alert alert-info">You are not logged in</div> */}
+            <form onSubmit={handleSubmit} className="mx-auto" style={{ maxWidth: '600px' }}>
+              <div className="mb-3">
+                <label htmlFor="email" className="form-label">Email:</label>
+                <input
+                  type="email"
+                  className="form-control"
+                  id="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="mb-3">
+                <label htmlFor="password" className="form-label">Password:</label>
+                <input
+                  type="password"
+                  className="form-control"
+                  id="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+              <button type="submit" className="btn btn-primary w-100" disabled={loading}>
+                {loading ? <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> : "Login"}
+              </button>
+            </form>
+            <div className="text-center mt-3">
+              <Link to="/register">Don't have an account? Register</Link>
+            </div>
+            <div className="text-center mt-3">
+              <Link to="/verify-email">Forgotten password? Reset</Link>
+            </div>
+        </> 
+      )};
     </div>
   );
 }

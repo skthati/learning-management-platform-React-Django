@@ -37,8 +37,11 @@ urlpatterns = [
     # path("instructor/", api_views.InstructorView.as_view(), name="instructor_view"),
     # path("category/", api_views.CategoryView.as_view(), name="category"),
     # path("course/", api_views.CourseView.as_view(), name="course")
-    path('categories/<slug:slug>/', api_views.CategoryView.as_view({'get':'list'}), name='category-by-slug'),
-    path('courses/<slug:slug>/', api_views.CourseView.as_view({'get':'list'}), name='course-by-slug'),
-    path('cart-orders-lists/<cart_id>/', api_views.MyCartOrderListView.as_view({'get':'list'}), name='cart-order-by-cart-id'),
+    path('category/<slug:slug>/', api_views.MyCategoryView.as_view({'get':'list'}), name='category-by-slug'),
+    path('course/<slug:slug>/', api_views.MyCourseView.as_view({'get':'list'}), name='course-by-slug'),
+    path('mycart/', api_views.MyCartView.as_view({'get':'list'}), name='cart'),
+    path('mycart/<int:pk>/', api_views.MyCartOrderListView.as_view({'get':'list'}), name='cart-order-by-cart-id'),
+    path('mycart/<cart_id>/<pk>/', api_views.MyCartOrderListView.as_view({'delete':'destroy'}), name='cart-order-by-cart-id-delete'),
+    path('mycart/stats/<cart_id>/', api_views.MyCartStatsView.as_view({'get':'list'}), name='cart-order-stats'),
 ]
 

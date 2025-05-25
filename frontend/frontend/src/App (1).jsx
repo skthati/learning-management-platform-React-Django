@@ -10,7 +10,6 @@ import { logout } from './utils/auth'
 import LoginStatus from './views/auth/LoginStatus'
 import PasswordResetEmail from './views/auth/PasswordResetVerifyEmail'
 import ResetPassword from './views/auth/ResetPassword'
-import { Link } from 'react-router-dom';
 
 function App() {
   return  (
@@ -36,7 +35,7 @@ function App() {
 
 const MyLandingPage = () => {
   const location = useLocation();
-  return location.pathname === '/' ? <div><h1>Hello World !</h1> <Link className="btn btn-primary" to="/login">Login</Link></div> : null
+  return location.pathname === '/' ? <h1>Hello World !</h1> : null
 }
 
 export default App

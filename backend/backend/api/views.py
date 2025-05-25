@@ -121,6 +121,11 @@ class CategoryView(ModelViewSet):
     queryset = api_models.Category.objects.filter(active = True)
     serializer_class = api_serializer.CategorySerializer
     permission_classes = (permissions.AllowAny,)
+
+class MyCategoryView(ModelViewSet):
+    queryset = api_models.Category.objects.filter(active = True)
+    serializer_class = api_serializer.CategorySerializer
+    permission_classes = (permissions.AllowAny,)
     lookup_field = 'slug'  # Use 'slug' instead of the default 'pk'
 
     def get_queryset(self):
@@ -136,8 +141,12 @@ class CourseView(ModelViewSet):
     queryset = api_models.Course.objects.filter(active = True) # platform_status = "Published", 
     serializer_class = api_serializer.CourseSerializer
     permission_classes = (permissions.AllowAny,)
+
+class MyCourseView(ModelViewSet):
+    queryset = api_models.Course.objects.filter(active = True) # platform_status = "Published", 
+    serializer_class = api_serializer.CourseSerializer
+    permission_classes = (permissions.AllowAny,)
     lookup_field = 'slug'  # Use 'slug' instead of the default 'pk'
-    
 
     def get_queryset(self):
         # Get the slug from url params
@@ -149,10 +158,7 @@ class CourseView(ModelViewSet):
         else:
             queryset = api_models.Course.objects.filter(active=True)
         return queryset
-
-            
     
-
 class ChapterView(ModelViewSet):
     queryset = api_models.Chapter.objects.all()
     serializer_class = api_serializer.ChapterSerializer
@@ -174,6 +180,11 @@ class Question_Answer_MessageView(ModelViewSet):
     permission_classes = (permissions.AllowAny,)
 
 class CartView(ModelViewSet):
+    queryset = api_models.Cart.objects.all()
+    serializer_class = api_serializer.CartSerializer
+    permission_classes = (permissions.AllowAny,)
+
+class MyCartView(ModelViewSet):
     queryset = api_models.Cart.objects.all()
     serializer_class = api_serializer.CartSerializer
     permission_classes = (permissions.AllowAny,)
@@ -262,6 +273,7 @@ class CartOrderListView(ModelViewSet):
     permission_classes = (permissions.AllowAny,)
 
 class MyCartOrderListView(ModelViewSet):
+    queryset = api_models.Cart.objects.all()
     serializer_class = api_serializer.CartSerializer
     permission_classes = (permissions.AllowAny,)
 
@@ -274,11 +286,74 @@ class MyCartOrderListView(ModelViewSet):
             queryset = api_models.Cart.objects.all()
         return queryset
     
+    def destroy(self, request, *args, **kwargs):
+        cart_id = self.kwargs.get('cart_id', None)
+        item_id = self.kwargs.get('pk', None)
+
+        if not cart_id or not item_id:
+            return Response(
+                {
+                    "error": "Cart ID or List ID does not match."
+                }, status=status.HTTP_400_BAD_REQUEST,
+            )
+        
+        cart_item = api_models.Cart.objects.filter(cart_id=cart_id, id=item_id).first()
+        if cart_item:
+            cart_item.delete()
+            return Response(
+                {
+                    "error": "Cart Item deleted Successfully."
+                }, status=status.HTTP_204_NO_CONTENT,
+            )
+        else:
+            return Response(
+                {
+                    "error": "Cart item not found."
+                }, status=status.HTTP_404_NOT_FOUND
+            )
+
+    
     # def retrieve(self, request, *args, **kwargs):
     #     instance = self.get_object()
     #     serializer = self.get_serializer(instance)
     #     return Response(serializer.data)
         # return super().retrieve(request, *args, **kwargs)
+
+class MyCartStatsView(ModelViewSet):
+    # queryset = api_models.Cart.objects.all()
+    serializer_class = api_serializer.CartSerializer
+    permission_classes = (permissions.AllowAny,)
+    lookup_field = 'cart_id'  # Use 'cart_id' instead of the default 'pk'
+
+    def get_queryset(self):
+        cart_id = self.kwargs.get('cart_id', None)
+        if cart_id:
+            queryset = api_models.Cart.objects.filter(cart_id=cart_id)
+        else:
+            queryset = api_models.Cart.objects.all()
+        return queryset
+    
+    def get(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
+        total_price = 0.0
+        total_tax = 0.0
+        grand_total = 0.0
+
+        for item in queryset:
+            total_price += float(item.price)
+            total_tax += float(item.tax)
+            grand_total += round(float(item.total), 2)
+        
+        data = {
+            "price": total_price,
+            "tax": total_tax,
+            "grand_total": grand_total
+        }
+
+        return Response(data)
+
+
 
 class CertificateView(ModelViewSet):
     queryset = api_models.Certificate.objects.all()

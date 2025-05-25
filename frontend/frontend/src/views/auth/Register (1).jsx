@@ -24,7 +24,6 @@ function Register() {
     setLoading(true);
     setError("");
     setSuccess(false);
-    
 
     if (password !== passwordConfirmation) {
       setError("Passwords do not match");
@@ -41,7 +40,6 @@ function Register() {
       // });
       const response = await register(fullName, email, password, passwordConfirmation);
       setSuccess("true");
-      console.log(response);
     } catch (err) {
       setError(err.response.data?.detail || "Something went wrong");
       
